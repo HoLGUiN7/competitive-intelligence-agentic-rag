@@ -1,0 +1,475 @@
+{
+  "name": "01 - Multimodal RAG Ingestion (Crawl4AI + Docling)",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -272,
+        32
+      ],
+      "id": "0f9bfbb2-980a-4710-9a64-38bcd126dc81",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  { json: { competidor: \"Qdrant\", url: \"https://qdrant.tech/pricing/\", categoria: \"precios\" } },\n  { json: { competidor: \"Qdrant\", url: \"https://qdrant.tech/benchmarks/\", categoria: \"rendimiento\" } },\n  { json: { competidor: \"Pinecone\", url: \"https://www.pinecone.io/pricing/\", categoria: \"precios\" } },\n  { json: { competidor: \"Weaviate\", url: \"https://weaviate.io/pricing\", categoria: \"precios\" } }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        400
+      ],
+      "id": "3fe0acbd-4c7c-4579-afdf-bf6f93cfd15a",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://crawl4ai:11235/crawl",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer local_secret_token_123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"urls\": [\"{{ $json.url }}\"],\n  \"priority\": 10\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        432,
+        400
+      ],
+      "id": "c92c1e83-96f6-408a-9912-a73ced3d6a0d",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "inteligencia_competitiva",
+          "mode": "list",
+          "cachedResultName": "inteligencia_competitiva"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.4,
+      "position": [
+        864,
+        400
+      ],
+      "id": "2f66d451-6dc0-4de8-a2fa-47969769e137",
+      "name": "Qdrant Vector Store",
+      "credentials": {
+        "qdrantApi": {
+          "id": "vmROlXeYMoveu07j",
+          "name": "rag-network"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "nomic-embed-text:latest"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "typeVersion": 1,
+      "position": [
+        784,
+        592
+      ],
+      "id": "4d33b915-11f8-4b0b-b0f1-c2091911fe0d",
+      "name": "Embeddings Ollama",
+      "credentials": {
+        "ollamaApi": {
+          "id": "yUQjIs1bn8hZyBHg",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $('Split Out').item.json.markdown.fit_markdown || $('Split Out').item.json.markdown.raw_markdown }}",
+        "textSplittingMode": "custom",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "competidor",
+                "value": "={{ $('Code in JavaScript').item.json.competidor }}"
+              },
+              {
+                "name": "categoria",
+                "value": "={{ $('Code in JavaScript').item.json.categoria }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        960,
+        592
+      ],
+      "id": "43147dd3-07fd-4362-9642-fac77cf16524",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "results",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1.1,
+      "position": [
+        656,
+        400
+      ],
+      "id": "cf75cc1f-3219-453c-90dc-00ea69261213",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "chunkOverlap": 200,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        896,
+        768
+      ],
+      "id": "586db3e0-f2d3-4fc9-b117-3fd9db5a2d68",
+      "name": "Recursive Character Text Splitter"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/data/pdfs/*.pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        -224
+      ],
+      "id": "e20ecffa-35e9-4c12-a7ff-7f103f6b6b84",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "inteligencia_competitiva",
+          "mode": "list",
+          "cachedResultName": "inteligencia_competitiva"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.4,
+      "position": [
+        688,
+        -224
+      ],
+      "id": "2a2836d0-384c-4575-ae37-98637ae6941b",
+      "name": "Qdrant Vector Store1",
+      "credentials": {
+        "qdrantApi": {
+          "id": "vmROlXeYMoveu07j",
+          "name": "rag-network"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://docling:5001/v1/convert/file",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "files",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        448,
+        -224
+      ],
+      "id": "a4fbe998-0f90-4afa-8a3d-db494ef8ac9b",
+      "name": "Docling PDF Parser"
+    },
+    {
+      "parameters": {
+        "model": "nomic-embed-text:latest"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "typeVersion": 1,
+      "position": [
+        608,
+        -32
+      ],
+      "id": "c7e823cc-7363-4213-83ba-29a276468e95",
+      "name": "Embeddings Ollama1",
+      "credentials": {
+        "ollamaApi": {
+          "id": "yUQjIs1bn8hZyBHg",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.document.md_content }}",
+        "textSplittingMode": "custom",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "competidor",
+                "value": "Benchmarks Generales"
+              },
+              {
+                "name": "categoria",
+                "value": "rendimiento"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        800,
+        -48
+      ],
+      "id": "37175373-013f-4c70-aacb-1a3e01f9d854",
+      "name": "Default Data Loader1"
+    },
+    {
+      "parameters": {
+        "chunkSize": 1500,
+        "chunkOverlap": 300,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        752,
+        128
+      ],
+      "id": "e1024e1d-32af-4e61-9fad-9981dd6f9c0c",
+      "name": "Recursive Character Text Splitter1"
+    },
+    {
+      "parameters": {
+        "content": "## PDF Ingestion Pipeline (Docling + Qdrant)\n\nReads local PDF documents from disk (/data/pdfs/*.pdf), parses complex multi-column layouts and tables into clean Markdown via Docling, splits the text into chunks (1500/300), generates local embeddings with Ollama (nomic-embed-text), and stores them with metadata in Qdrant.",
+        "height": 640,
+        "width": 928,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        160,
+        -368
+      ],
+      "typeVersion": 1,
+      "id": "c5ef34c1-ddd3-4ce3-8e74-7976d53fcc35",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Web Scraping Pipeline (Crawl4AI + Qdrant)\n\nDefines target competitor URLs and metadata, extracts clean Fit Markdown from dynamic web pages via Crawl4AI, splits the content into chunks (1000/200), generates local embeddings with Ollama (nomic-embed-text), and indexes the vectors into Qdrant.",
+        "height": 608,
+        "width": 1072,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        160,
+        304
+      ],
+      "id": "ce3d57e9-4fde-41cd-acd6-80fc8d530fe8",
+      "name": "Sticky Note1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Ollama": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Qdrant Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Qdrant Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Qdrant Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Docling PDF Parser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Docling PDF Parser": {
+      "main": [
+        [
+          {
+            "node": "Qdrant Vector Store1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Ollama1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Qdrant Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader1": {
+      "ai_document": [
+        [
+          {
+            "node": "Qdrant Vector Store1",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter1": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader1",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "0d9ce89c-652b-4d73-b460-e3aa94e6b119",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "30a7a2c92436bf852947a9dccd7ecafcf4c58cdcfe383b0d8dad8800217c1a0c"
+  },
+  "nodeGroups": [],
+  "id": "PZHZTgp6mg2ZirAu",
+  "tags": []
+}

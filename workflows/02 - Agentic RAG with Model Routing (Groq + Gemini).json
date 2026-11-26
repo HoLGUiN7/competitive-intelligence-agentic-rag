@@ -1,0 +1,448 @@
+{
+  "name": "02 - Agentic RAG with Model Routing (Groq + Gemini)",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        -752,
+        176
+      ],
+      "id": "2a3914d5-a0a3-4d62-9c68-0a2d28353a71",
+      "name": "When chat message received",
+      "webhookId": "8bbbc149-f88e-44a3-b250-a160340806ab"
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        240,
+        672
+      ],
+      "id": "510e9160-fc68-416f-814a-a41942a8de87",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.8-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        96,
+        672
+      ],
+      "id": "0a3a48d6-1040-4a6c-a9f8-c7cf177b7e9b",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "bkb2iBMzySF4O78t",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "nomic-embed-text:latest"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "typeVersion": 1,
+      "position": [
+        432,
+        704
+      ],
+      "id": "77ddbb83-70f5-481f-a5e8-4529d7a73bfd",
+      "name": "Embeddings Ollama",
+      "credentials": {
+        "ollamaApi": {
+          "id": "yUQjIs1bn8hZyBHg",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        336
+      ],
+      "id": "d10aae34-c261-418b-8946-8fcc63ca7909",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "6wSzdXeBevKvvWUy",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputText": "={{ $json.chatInput }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "SIMPLE",
+              "description": "=If it is a direct query or asks for a single fact (e.g., \"What is Pinecone's pricing?\" or \"What is Qdrant?\")"
+            },
+            {
+              "category": "COMPLEX",
+              "description": "=If it asks for comparisons across multiple competitors, comparison tables, cross-referencing web data with benchmarks, or deep technical analysis"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "typeVersion": 1.1,
+      "position": [
+        -320,
+        176
+      ],
+      "id": "2d5e5320-1348-4c51-a5ba-35c67fcf4463",
+      "name": "Text Classifier"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        80,
+        48
+      ],
+      "id": "5ca6fbc2-d65e-47c5-b84e-263ff37956ef",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "6wSzdXeBevKvvWUy",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 3
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        224,
+        48
+      ],
+      "id": "f8aece72-d2ac-4a7c-93ba-c8705d1dfa18",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {
+        "model": "nomic-embed-text:latest"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "typeVersion": 1,
+      "position": [
+        416,
+        112
+      ],
+      "id": "974fc207-4f7d-490a-a1ce-ddb2685ffc29",
+      "name": "Embeddings Ollama1",
+      "credentials": {
+        "ollamaApi": {
+          "id": "yUQjIs1bn8hZyBHg",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "=Search for pricing, plans, billing models, performance, latency, and benchmarks of vector databases (Qdrant, Pinecone, Weaviate, Chroma, Milvus) and academic PDF studies.",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "inteligencia_competitiva",
+          "mode": "list",
+          "cachedResultName": "inteligencia_competitiva"
+        },
+        "topK": 6,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.4,
+      "position": [
+        336,
+        560
+      ],
+      "id": "4b486b3a-7576-4edb-9264-29df5bf13d1b",
+      "name": "database",
+      "credentials": {
+        "qdrantApi": {
+          "id": "vmROlXeYMoveu07j",
+          "name": "rag-network"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "=Search for pricing, plans, billing models, performance, latency, and benchmarks of vector databases (Qdrant, Pinecone, Weaviate, Chroma, Milvus) and academic PDF studies.",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "inteligencia_competitiva",
+          "mode": "list",
+          "cachedResultName": "inteligencia_competitiva"
+        },
+        "topK": 5,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.4,
+      "position": [
+        336,
+        -48
+      ],
+      "id": "d282d183-8415-46be-8445-de7ea275630f",
+      "name": "database1",
+      "credentials": {
+        "qdrantApi": {
+          "id": "vmROlXeYMoveu07j",
+          "name": "rag-network"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=You are a concise technical assistant. Always query Qdrant to answer direct, specific questions in English using strictly the retrieved context. If the exact figure or fact is not present in the context, state it clearly without fabricating numbers."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        128,
+        -192
+      ],
+      "id": "c26b3975-a53a-4f05-9043-8ee26bb493a7",
+      "name": "Fast AI Agent (Groq)"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=# ROLE\n\nYou are a Senior Competitive Intelligence Analyst specializing in vector databases and RAG systems.\nAlways respond in English, in a structured and precise manner, using Markdown comparison tables whenever comparing options.\n\n## EXECUTION STEPS (Self-RAG)\n\n1. Call the \"database\" tool to retrieve verified information. Never answer from memory regarding pricing, plans, or performance metrics: always query your Qdrant tool first.\n\n2. Evaluate the sufficiency of the retrieved context before answering: if the chunks do not cover a specific competitor, metric, or aspect of the question, reformulate your query and search Qdrant again (up to 2 retries) before writing the final response.\n\n3. If the context is ambiguous or does not specify an exact figure (for example, usage/resource-based pricing rather than a flat rate), state this transparently and explain the actual pricing model based strictly on the retrieved data. Never fabricate numbers.\n\n4. Briefly cite at the end which sources or topics support your response.\n\nNote: Pinecone does not appear in the analyzed empirical benchmarks because it is a closed-source proprietary service."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        144,
+        400
+      ],
+      "id": "312ed54e-0bfb-4c90-8d85-2b2f6d876187",
+      "name": "Complex AI Agent (Gemini)"
+    },
+    {
+      "parameters": {
+        "content": "## Query Complexity Router (Groq)\nClassifies incoming user queries into SIMPLE (single-fact lookups) or COMPLEX (multi-competitor comparisons, tables, or benchmark cross-referencing) using Groq for low-latency routing.",
+        "height": 400,
+        "width": 448,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        64
+      ],
+      "id": "6585dc32-ad9f-4b5b-b6ab-d830277c2fa4",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Fast Factual Agent (Groq + Qdrant)\nHandles direct SIMPLE queries with minimal latency. Retrieves top matching chunks from Qdrant (nomic-embed-text) and answers strictly from retrieved context without fabricating figures.",
+        "height": 528,
+        "width": 640,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        48,
+        -304
+      ],
+      "typeVersion": 1,
+      "id": "7d91ac7f-e621-4ed2-a6ec-0e44e65a6e68",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Deep Analysis & Self-RAG Agent (Gemini 2.5 Flash + Qdrant)\nHandles COMPLEX analytical queries. Queries Qdrant, evaluates context sufficiency (retrying up to 2 times if gaps exist), and synthesizes structured Markdown comparison tables with source citations.",
+        "height": 592,
+        "width": 640,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        48,
+        240
+      ],
+      "typeVersion": 1,
+      "id": "2ab71879-c25a-444c-b003-6082ebf670b3",
+      "name": "Sticky Note2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Complex AI Agent (Gemini)",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Complex AI Agent (Gemini)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Ollama": {
+      "ai_embedding": [
+        [
+          {
+            "node": "database",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Classifier": {
+      "main": [
+        [
+          {
+            "node": "Fast AI Agent (Groq)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Complex AI Agent (Gemini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Fast AI Agent (Groq)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "Fast AI Agent (Groq)",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Ollama1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "database1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "database": {
+      "ai_tool": [
+        [
+          {
+            "node": "Complex AI Agent (Gemini)",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "database1": {
+      "ai_tool": [
+        [
+          {
+            "node": "Fast AI Agent (Groq)",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "3943d3f1-cdf4-4a0d-aa79-d0f332d6d137",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "30a7a2c92436bf852947a9dccd7ecafcf4c58cdcfe383b0d8dad8800217c1a0c"
+  },
+  "nodeGroups": [],
+  "id": "NASf0kNGxton5zop",
+  "tags": []
+}
