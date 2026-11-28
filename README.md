@@ -12,7 +12,21 @@ A **7-layer Multimodal Agentic RAG system** for Competitive Intelligence and Mar
 6. **LLMs & Model Routing:** Dynamic routing via **Text Classifier** into:
    - **`SIMPLE` route:** Fast factual agent powered by **Groq** (`openai/gpt-oss-120b`).
    - **`COMPLEX` route:** Analytical **Self-RAG** agent powered by **Gemini 2.5 Flash** with iterative context evaluation and Markdown comparison tables.
-7. **Evaluation:** **Ragas** evaluation suite in Python (`evaluation/evaluate_rag.py`) measuring context grounding and anti-hallucination behavior.
+7. **Evaluation:** using **Ragas** (`Faithfulness`, judge: `groq` / `openai/gpt-oss-120b`, `max_tokens=8192`, `max_workers=1`) on English queries across both routing paths:
+
+* **Global Average Faithfulness:** **65.79%** (`0.6579`)
+* **COMPLEX Route (Gemini 2.5 Flash — Qdrant vs. Weaviate index build & latency benchmarks):** **81.58%** (`0.8158`)
+* **SIMPLE Route (Groq — SIFT1M anti-hallucination check for Pinecone):** **50.00%** (`0.50`)
+
+To run the evaluation locally:
+
+```powershell
+cd evaluation
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+$env:GROQ_API_KEY="your_groq_api_key"
+python evaluate_rag.py
 
 ## Repository Structure
 

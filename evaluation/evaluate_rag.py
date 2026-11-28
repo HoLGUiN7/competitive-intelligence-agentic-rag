@@ -21,7 +21,7 @@ eval_dataset = Dataset.from_list(raw_data)
 
 # Usamos openai/gpt-oss-120b en Groq como juez y max_workers=1 para evitar rate limits (429)
 judge_llm = LangchainLLMWrapper(
-    ChatGroq(model="openai/gpt-oss-120b", temperature=0)
+    ChatGroq(model="openai/gpt-oss-120b", temperature=0, max_tokens=8192)
 )
 run_config = RunConfig(max_workers=1, max_retries=3, timeout=180)
 
